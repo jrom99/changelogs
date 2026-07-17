@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "changelogs"
+version = "0.15.1-dev"
+description = "A changelog finder and parser."
+requires-python = ">=3.6"
+authors = [
+  { name = "pyup.io", email = "support@pyup.io" }
+]
+# readme = { file = ["README.rst", "HISTORY.rst"], content-type = "text/x-rst" }
+readme = "README.rst"
+license = "MIT"
+license-files=["LICENSE", "AUTHORS.rst"]
+keywords = ["changelogs"]
+classifiers = [
+    'Development Status :: 2 - Pre-Alpha',
+    'Intended Audience :: Developers',
+    'Natural Language :: English',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+]
+
+dependencies = [
+    "requests",
+    "validators",
+    "packaging",
+    "lxml",
+    "gitchangelog",
+]
+
+[project.scripts]
+changelogs = "changelogs.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/pyupio/changelogs"
+
+[project.optional-dependencies]
+test = [
+    "mock",
+    "pytest",
+    "pytest-cov",
+    "betamax",
+    "betamax-serializers",
+]
+
+dev = [
+    "mock",
+    "pytest",
+    "pytest-cov",
+    "betamax",
+    "betamax-serializers",
+    "flake8",
+    "tox",
+]
+
+[tool.setuptools.packages.find]
+include = ["changelogs*"]
+
+[tool.setuptools.package-data]
+changelogs = [
+    "custom/pypi/**/*",
+    "custom/npm/**/*",
+    "custom/gem/**/*",
+]
+
+[tool.flake8]
+exclude = [
+    "docs",
+    ".*",
+    "vcr",
+    "*.egg-info",
+    "build",
+    "dist",
+]
+max-line-length = 110

@@ -2,7 +2,7 @@
 import functools
 import subprocess
 from tempfile import mkdtemp
-import imp
+from importlib.util import module_from_spec, spec_from_file_location
 import requests
 import os
 import re
@@ -30,7 +30,7 @@ def _load_custom_functions(vendor, name):
     functions = {}
     # Some packages have dash in their name, replace them with underscore
     # E.g. python-ldap to python_ldap
-    filename = "{}.py".format(name.replace("-", "_").lower())
+    filename = f"{name.replace('-', '_').lower()}.py"
     path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),  # current working dir
         "custom",  # /dir/parser
@@ -38,12 +38,19 @@ def _load_custom_functions(vendor, name):
         filename  # /dir/parser/pypi/django.py
     )
     if os.path.isfile(path):
-        module_name = "parser.{vendor}.{name}".format(vendor=vendor, name=name)
-        module = imp.load_source(module_name, path)
-        functions = dict(
-            (function, getattr(module, function, None)) for function in ALLOWED_CUSTOM_FUNCTIONS
+        module_name = f"parser.{vendor}.{name}"
+        spec = spec_from_file_location(module_name, path)
+        if spec is None or spec.loader is None:
+            return functions
+
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        functions = {
+            function: getattr(module, function)
+            for function in ALLOWED_CUSTOM_FUNCTIONS
             if hasattr(module, function)
-        )
+        }
     return functions
 
 
@@ -235,7 +242,7 @@ def get_limited_content_entry(session, url, chars_limit):
                 # Avoid https://github.com/psf/requests/issues/3359
                 if not resp.encoding:
                     resp.encoding = 'utf-8'
-                limited_content = resp.iter_content(chunk_size=chars_limit, 
+                limited_content = resp.iter_content(chunk_size=chars_limit,
                                                     decode_unicode=True).__next__()
             except StopIteration:
                 pass
@@ -280,11 +287,11 @@ def get_content(session, urls, chars_limit):
 
             else:
                 content += "\n\n" + get_limited_content_entry(session, url, chars_limit)
-                
+
             # To avoid exceeding the content limit by accumulation
             if len(content) > chars_limit:
-                break   
-                
+                break
+
         except requests.ConnectionError:
             pass
     return content
